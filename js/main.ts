@@ -41,7 +41,7 @@ function breakdownDimensions(dimensions: any[]) {
   return result;
 }
 
-function renderTensor(id: string, dimensions: any[]) {
+function renderTensor(id: string, dimensions: any[], highlight: Highlight[]) {
   let container = document.getElementById(id)
   if (container == null) {
     return
@@ -60,7 +60,7 @@ function renderTensor(id: string, dimensions: any[]) {
     } else if(d.length == 2) {
       tensor = new Tensor2D(d[0], d[1], container);
     } else {
-      tensor = new Tensor3D(d[0], d[1], d[2], container);      
+      tensor = new Tensor3D(d[0], d[1], d[2], highlight, container);      
     }
 
     tensor.render()
@@ -68,7 +68,20 @@ function renderTensor(id: string, dimensions: any[]) {
 }
 
 function test() {
-  renderTensor("testing-div", [5, [3, 2], [10, 10, 28]])
+  renderTensor("testing-div", [[10, 10, 28]], [
+    {position: [1, 1, 0], color: 'red'},
+    {position: [3, 1, 0], color: 'red'},
+    {position: [1, 3, 0], color: 'red'},
+    {position: [3, 3, 0], color: 'red'},
+    {position: [0, 0, 0], color: 'pink'},
+    {position: [0, 1, 0], color: 'pink'},
+    {position: [0, 2, 0], color: 'pink'},
+    {position: [1, 0, 0], color: 'pink'},
+    {position: [1, 2, 0], color: 'pink'},
+    {position: [2, 0, 0], color: 'pink'},
+    {position: [2, 1, 0], color: 'pink'},
+    {position: [2, 2, 0], color: 'pink'},
+  ])
 }
 
 export { renderTensor, test }

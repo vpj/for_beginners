@@ -8,13 +8,15 @@ class Cell3D {
     x: number
     y: number
     z: number
+    highlight: string
     tensor: Tensor3D
 
-    constructor(x: number, y: number, z: number, tensor: Tensor3D, parent: HTMLElement) {
+    constructor(x: number, y: number, z: number, highlight: string, tensor: Tensor3D, parent: HTMLElement) {
         this.parent = parent
         this.x = x
         this.y = y
         this.z = z
+        this.highlight = highlight
         this.tensor = tensor
     }
 
@@ -28,6 +30,9 @@ class Cell3D {
             this.faces[i] = document.createElement("div")
             this.faces[i].classList.add(`fbeg-face`)
             this.faces[i].classList.add(`fbeg-face-${i + 1}`)
+            if(this.highlight != null) {
+                this.faces[i].style.backgroundColor = this.highlight
+            }
             this.elem.appendChild(this.faces[i])
         }
     }
@@ -66,22 +71,30 @@ class Tensor3D implements Tensor {
     x: number
     y: number
     z: number
+    highlight: {[position: string]: string} = {}
+    maxX = 7
+    maxY = 7
+    maxZ = 7
 
-    constructor(x: number, y: number, z: number, parent: HTMLElement) {
+    constructor(x: number, y: number, z: number, highlight: Highlight[], parent: HTMLElement) {
         this.parent = parent
         this.x = x
         this.y = y
         this.z = z
+        for(let h of highlight) {
+            let p = h.position.join('_')
+            this.highlight[p] = h.color
+        }
     }
 
     get X(): number {
-        return Math.min(this.x, 7)
+        return Math.min(this.x, this.maxX)
     }
     get Y(): number {
-        return Math.min(this.y, 7)
+        return Math.min(this.y, this.maxY)
     }
     get Z(): number {
-        return Math.min(this.z, 7)
+        return Math.min(this.z, this.maxZ)
     }
 
     render() {
@@ -106,12 +119,12 @@ class Tensor3D implements Tensor {
         this.content.appendChild(this.elem)
 
         let l = (1 + Math.cos(Math.PI / 5.5) * this.X) * CELL_SIZE
-        let L = (1 + Math.cos(Math.PI / 5.5) * 7) * CELL_SIZE
+        let L = (1 + Math.cos(Math.PI / 5.5) * this.maxX) * CELL_SIZE
         let r = (0 + Math.cos(Math.PI / 6) * this.Z) * CELL_SIZE
-        let R = (0 + Math.cos(Math.PI / 6) * 7) * CELL_SIZE
+        let R = (0 + Math.cos(Math.PI / 6) * this.maxZ) * CELL_SIZE
         let b = CELL_SIZE
         let t = (1 + this.Y + (Math.sin(Math.PI / 6) + Math.sin(Math.PI / 48)) * (this.Z + this.X) / 2) * CELL_SIZE
-        let T = (1 + 7 + (Math.sin(Math.PI / 6) + Math.sin(Math.PI / 48)) * 7) * CELL_SIZE
+        let T = (1 + this.maxY + (Math.sin(Math.PI / 6) + Math.sin(Math.PI / 48)) * (this.maxZ + this.maxZ) / 2) * CELL_SIZE
 
         this.container.style.width = `${l + r}px`
         this.container.style.height = `${t + b}px`
@@ -156,10 +169,12 @@ class Tensor3D implements Tensor {
                             has = true
                     }
 
-                    if (!has)
+                    if (!has) {
                         continue
+                    }
 
-                    let cell = new Cell3D(x, y, z, this, this.elem)
+                    let p = `${x}_${y}_${z}`
+                    let cell = new Cell3D(x, y, z, this.highlight[p], this, this.elem)
                     cell.render(faces)
                 }
             }
@@ -174,7 +189,7 @@ class Tensor3D implements Tensor {
                 if (x == this.X - 1) label = `${this.x - 1}`
             }
 
-            let cell = new Cell3D(x, -1, 0, this, this.elem)
+            let cell = new Cell3D(x, -1, 0, null, this, this.elem)
             cell.renderLabel(2, label)
         }
     }
@@ -187,7 +202,7 @@ class Tensor3D implements Tensor {
                 if (y == this.Y - 1) label = `${this.y - 1}`
             }
 
-            let cell = new Cell3D(-1, y, 0, this, this.elem)
+            let cell = new Cell3D(-1, y, 0, null, this, this.elem)
             cell.renderLabel(2, label)
         }
     }
@@ -200,7 +215,7 @@ class Tensor3D implements Tensor {
                 if (z == this.Z - 1) label = `${this.z - 1}`
             }
 
-            let cell = new Cell3D(this.X - 1, -1, z, this, this.elem)
+            let cell = new Cell3D(this.X - 1, -1, z, null, this, this.elem)
             cell.renderLabel(4, label)
         }
     }
