@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>WebApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="styles.css?t=-10" />
+</head>
+
+<body style="background: #1d2127;">
+  <div id="testing-div"></div>
+  <script src="require.js"></script>
+  <script src="main.js?t=10"></script>
+  <script>
+    require(["main"], (main) => { main.test() })
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "target": "es5",
+        "module": "amd",
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "outFile": "main.js",
+        "watch": true
+    },
+    "include": [
+        "d.ts",
+        "*.ts"
+    ]
+}
