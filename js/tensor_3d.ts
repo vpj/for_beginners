@@ -14,19 +14,15 @@ class Cell3D {
     topFace: SVGElement
     frontFace: SVGElement
     sideFace: SVGElement
-    x: number
-    y: number
-    z: number
+    cell: number[]
     highlight: Highlight
     tensor: Tensor3D
 
-    constructor(x: number, y: number, z: number, highlight: Highlight, tensor: Tensor3D, parent: SVGGElement) {
+    constructor(cell: number[], highlight: Highlight, tensor: Tensor3D, parent: SVGGElement) {
         this.parent = parent
-        this.x = x
-        this.y = y
-        this.z = z
         this.highlight = highlight
         this.tensor = tensor
+        this.cell = cell
     }
 
     private getHighlight(face: string): string {
@@ -43,14 +39,17 @@ class Cell3D {
         }
     }
     render(hasFaces: CellHasFaces) {
+        let x = this.cell[0]
+        let y = this.cell[1]
+        let z = this.cell[2]
         this.renderCellContainer()
 
         if (hasFaces.top) {
             this.topFace = this.renderFace(
-                [this.tensor.getPoint(this.x, this.y, this.z),
-                this.tensor.getPoint(this.x, this.y, this.z + 1),
-                this.tensor.getPoint(this.x + 1, this.y, this.z + 1),
-                this.tensor.getPoint(this.x + 1, this.y, this.z)],
+                [this.tensor.getPoint(x, y, z),
+                this.tensor.getPoint(x, y, z + 1),
+                this.tensor.getPoint(x + 1, y, z + 1),
+                this.tensor.getPoint(x + 1, y, z)],
                 "top",
                 this.getHighlight('top')
             )
@@ -59,10 +58,10 @@ class Cell3D {
 
         if (hasFaces.front) {
             this.frontFace = this.renderFace(
-                [this.tensor.getPoint(this.x, this.y, this.z),
-                this.tensor.getPoint(this.x, this.y + 1, this.z),
-                this.tensor.getPoint(this.x + 1, this.y + 1, this.z),
-                this.tensor.getPoint(this.x + 1, this.y, this.z)],
+                [this.tensor.getPoint(x, y, z),
+                this.tensor.getPoint(x, y + 1, z),
+                this.tensor.getPoint(x + 1, y + 1, z),
+                this.tensor.getPoint(x + 1, y, z)],
                 "front",
                 this.getHighlight('front')
             )
@@ -71,10 +70,10 @@ class Cell3D {
 
         if (hasFaces.side) {
             this.sideFace = this.renderFace(
-                [this.tensor.getPoint(this.x + 1, this.y, this.z),
-                this.tensor.getPoint(this.x + 1, this.y + 1, this.z),
-                this.tensor.getPoint(this.x + 1, this.y + 1, this.z + 1),
-                this.tensor.getPoint(this.x + 1, this.y, this.z + 1)],
+                [this.tensor.getPoint(x + 1, y, z),
+                this.tensor.getPoint(x + 1, y + 1, z),
+                this.tensor.getPoint(x + 1, y + 1, z + 1),
+                this.tensor.getPoint(x + 1, y, z + 1)],
                 "side",
                 this.getHighlight('side')
             )
@@ -100,6 +99,10 @@ class Cell3D {
     }
 
     renderLabel(face: string, label: string) {
+        let x = this.cell[0]
+        let y = this.cell[1]
+        let z = this.cell[2]
+
         this.renderCellContainer()
 
         let text = document.createElementNS(SVG_NS, "text")
@@ -108,17 +111,17 @@ class Cell3D {
         switch (face) {
             case "top":
                 this.topFace = text
-                p = this.tensor.getPoint(this.x + 0.5, this.y + 0.5, this.z)
+                p = this.tensor.getPoint(x + 0.5, y + 0.5, z)
                 p.y -= 9
                 break;
             case "side":
                 this.sideFace = text
-                p = this.tensor.getPoint(this.x + 1, this.y + 0.5, this.z + 0.5)
+                p = this.tensor.getPoint(x + 1, y + 0.5, z + 0.5)
                 p.y -= 9
                 break;
             default:
                 this.frontFace = text
-                p = this.tensor.getPoint(this.x + 0.5, this.y + 0.5, this.z)
+                p = this.tensor.getPoint(x + 0.5, y + 0.5, z)
                 p.x -= CELL_SIZE
                 break;
         }
@@ -143,22 +146,23 @@ class Tensor3D implements Tensor {
     parent: HTMLElement
     content: SVGElement
     elem: SVGGElement
-    x: number
-    y: number
-    z: number
+    size: number[]
+    end: string[]
+    fullSize: number[]
     highlight: { [position: string]: Highlight } = {}
-    maxX = 12
-    maxY = 12
-    maxZ = 12
 
-    constructor(x: number, y: number, z: number, highlight: Highlight[], parent: HTMLElement) {
+    constructor(size: number[], end: string[], highlight: Highlight[], parent: HTMLElement) {
         this.parent = parent
-        this.x = x
-        this.y = y
-        this.z = z
+        this.size = size
+        this.end = end
         for (let h of highlight) {
             let p = h.position.join('_')
             this.highlight[p] = h
+        }
+
+        this.fullSize = []
+        for (let i = 0; i < 3; ++i) {
+            this.fullSize.push(size[i] + (end[i] == null ? 0 : 2))
         }
     }
 
@@ -171,22 +175,12 @@ class Tensor3D implements Tensor {
         return { x: dx * CELL_SIZE, y: dy * CELL_SIZE }
     }
 
-    get X(): number {
-        return Math.min(this.x, this.maxX)
-    }
-    get Y(): number {
-        return Math.min(this.y, this.maxY)
-    }
-    get Z(): number {
-        return Math.min(this.z, this.maxZ)
-    }
-
     render() {
         this.renderFrame();
         this.renderCells();
-        this.renderXLabels();
-        this.renderYLabels();
-        this.renderZLabels();
+        this.renderLabels(0, 'top');
+        this.renderLabels(1, 'front');
+        this.renderLabels(2, 'side');
     }
 
     protected renderFrame() {
@@ -198,84 +192,92 @@ class Tensor3D implements Tensor {
         this.elem.classList.add("fbeg-3d")
         this.content.appendChild(this.elem)
 
-        this.content.style.width = `${this.getPoint(this.X, 0, this.Z).x - this.getPoint(-1, 0, 0).x}px`
-        this.content.style.height = `${this.getPoint(this.X, this.Y, 0).y - this.getPoint(0, 0, this.Z).y}px`
-        console.log(`translate(${this.getPoint(-1, 0, 0).x}, ${-this.getPoint(0, 0, this.Z).y})`)
-        this.elem.style.transform = `translate(${-this.getPoint(-1, 0, 0).x}px, ${-this.getPoint(0, 0, this.Z).y}px)`
+        let X = this.fullSize[0]
+        let Y = this.fullSize[1]
+        let Z = this.fullSize[2]
+
+        this.content.style.width = `${this.getPoint(X, 0, Z).x - this.getPoint(-1, 0, 0).x}px`
+        this.content.style.height = `${this.getPoint(X, Y, 0).y - this.getPoint(0, 0, Z).y}px`
+        console.log(`translate(${this.getPoint(-1, 0, 0).x}, ${-this.getPoint(0, 0, Z).y})`)
+        this.elem.style.transform = `translate(${-this.getPoint(-1, 0, 0).x}px, ${-this.getPoint(0, 0, Z).y}px)`
+    }
+
+    private getFaces(cell: number[]): CellHasFaces {
+        let faces: CellHasFaces = {
+            top: cell[1] == 0,
+            front: cell[2] == 0,
+            side: cell[0] == this.fullSize[0] - 1
+        }
+        for (let i = 0; i < 3; ++i) {
+            let c = cell[i]
+            let f = this.fullSize[i]
+            if (this.end[i] == null) {
+                continue
+            }
+
+            if (c == f - 2) {
+                return null
+            }
+
+            if (i == 0 && c == f - 3) {
+                faces.side = true
+            } else if (i == 1 && c == f - 1) {
+                faces.side = true
+            } else if (i == 2 && c == f - 1) {
+                faces.front = true
+            }
+        }
+
+        if (!faces.top && !faces.front && !faces.side) {
+            return null
+        }
+
+        return faces
     }
 
     protected renderCells() {
         let faces = new Array<boolean>(6)
 
-        for (let x = 0; x < this.X; ++x) {
-            for (let y = 0; y < this.Y; ++y) {
-                for (let z = 0; z < this.Z; ++z) {
-                    let faces: CellHasFaces = {
-                        top: y == 0,
-                        front: z == 0,
-                        side: x == this.X - 1
-                    }
-                    if (this.x > this.X) {
-                        if (x == this.X - 3) faces.side = true
-                        if (x == this.X - 2) continue
-                    }
-                    if (this.y > this.Y) {
-                        if (y == this.Y - 2) continue
-                        if (y == this.Y - 1) faces.top = true
-                    }
-                    if (this.z > this.Z) {
-                        if (z == this.Z - 2) continue
-                        if (z == this.Z - 1) faces.front = true
-                    }
-
-                    if (!faces.top && !faces.front && !faces.side) {
-                        continue
-                    }
-
-                    let p = `${x}_${y}_${z}`
-                    let cell = new Cell3D(x, y, z, this.highlight[p], this, this.elem)
-                    cell.render(faces)
+        let c = [0, 0, -1]
+        while (true) {
+            c[2]++
+            for (let i = 2; i > 0; --i) {
+                if (c[i] >= this.fullSize[i]) {
+                    c[i] = 0
+                    c[i - 1]++
                 }
             }
+
+            if (c[0] >= this.fullSize[0]) {
+                break
+            }
+
+            let faces = this.getFaces(c)
+            if (faces == null) {
+                continue
+            }
+
+            let p = c.join('_')
+            let cell = new Cell3D(c, this.highlight[p], this, this.elem)
+            cell.render(faces)
         }
     }
 
-    protected renderXLabels() {
-        for (let x = 0; x < this.X; ++x) {
+    protected renderLabels(d: number, face: string) {
+        for (let x = 0; x < this.fullSize[d]; ++x) {
             let label = `${x}`
-            if (this.x > this.X) {
-                if (x == this.X - 2) label = ELLIPSES
-                if (x == this.X - 1) label = `${this.x - 1}`
+            if (this.end[d] != null) {
+                if (x == this.fullSize[d] - 2) label = ELLIPSES
+                if (x == this.fullSize[d]  - 1) label = this.end[d]
             }
 
-            let cell = new Cell3D(x, 0, 0, null, this, this.elem)
-            cell.renderLabel('top', label)
-        }
-    }
-
-    protected renderYLabels() {
-        for (let y = 0; y < this.Y; ++y) {
-            let label = `${y}`
-            if (this.y > this.Y) {
-                if (y == this.Y - 2) label = ELLIPSES
-                if (y == this.Y - 1) label = `${this.y - 1}`
+            let c = [0, 0, 0]
+            c[d] = x
+            if(d == 2) {
+                c[0] = this.fullSize[0] - 1
             }
-
-            let cell = new Cell3D(0, y, 0, null, this, this.elem)
-            cell.renderLabel('front', label)
-        }
-    }
-
-    protected renderZLabels() {
-        for (let z = 0; z < this.Z; ++z) {
-            let label = `${z}`
-            if (this.z > this.Z) {
-                if (z == this.Z - 2) label = ELLIPSES
-                if (z == this.Z - 1) label = `${this.z - 1}`
-            }
-
-            let cell = new Cell3D(this.X - 1, 0, z, null, this, this.elem)
-            cell.renderLabel('side', label)
+            let cell = new Cell3D(c, null, this, this.elem)
+            cell.renderLabel(face, label)
         }
     }
 }

@@ -60,7 +60,7 @@ function renderTensor(id: string, dimensions: any[], highlight: Highlight[]) {
     } else if(d.length == 2) {
       tensor = new Tensor2D(d[0], d[1], highlight, container);
     } else {
-      tensor = new Tensor3D(d[0], d[1], d[2], highlight, container);      
+      tensor = new Tensor3D([d[0], d[1], d[2]], ['N', null, 'M'], highlight, container);      
     }
 
     tensor.render()
@@ -80,7 +80,7 @@ function test() {
       highlight.push({position: [i, j, 0], front: 'orange'})
     }
   }
-  renderTensor("testing-div", [[20], [4, 4], [20, 20, 28]], highlight)
+  renderTensor("testing-div", [[20], [4, 4], [6, 12, 3]], highlight)
 }
 
 export { renderTensor, test }
