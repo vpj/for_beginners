@@ -17,10 +17,10 @@ class Cell3D {
     x: number
     y: number
     z: number
-    highlight: string
+    highlight: Highlight
     tensor: Tensor3D
 
-    constructor(x: number, y: number, z: number, highlight: string, tensor: Tensor3D, parent: SVGGElement) {
+    constructor(x: number, y: number, z: number, highlight: Highlight, tensor: Tensor3D, parent: SVGGElement) {
         this.parent = parent
         this.x = x
         this.y = y
@@ -29,6 +29,19 @@ class Cell3D {
         this.tensor = tensor
     }
 
+    private getHighlight(face: string): string {
+        if (this.highlight == null) {
+            return null
+        }
+        switch (face) {
+            case 'front':
+                return this.highlight.front
+            case 'side':
+                return this.highlight.side
+            default:
+                return this.highlight.top
+        }
+    }
     render(hasFaces: CellHasFaces) {
         this.renderCellContainer()
 
@@ -38,35 +51,38 @@ class Cell3D {
                 this.tensor.getPoint(this.x, this.y, this.z + 1),
                 this.tensor.getPoint(this.x + 1, this.y, this.z + 1),
                 this.tensor.getPoint(this.x + 1, this.y, this.z)],
-                "top"
+                "top",
+                this.getHighlight('top')
             )
             this.elem.appendChild(this.topFace);
         }
 
-        if(hasFaces.front) {
+        if (hasFaces.front) {
             this.frontFace = this.renderFace(
                 [this.tensor.getPoint(this.x, this.y, this.z),
                 this.tensor.getPoint(this.x, this.y + 1, this.z),
                 this.tensor.getPoint(this.x + 1, this.y + 1, this.z),
                 this.tensor.getPoint(this.x + 1, this.y, this.z)],
-                "front"
+                "front",
+                this.getHighlight('front')
             )
             this.elem.appendChild(this.frontFace);
         }
 
-        if(hasFaces.side) {
+        if (hasFaces.side) {
             this.sideFace = this.renderFace(
                 [this.tensor.getPoint(this.x + 1, this.y, this.z),
                 this.tensor.getPoint(this.x + 1, this.y + 1, this.z),
                 this.tensor.getPoint(this.x + 1, this.y + 1, this.z + 1),
                 this.tensor.getPoint(this.x + 1, this.y, this.z + 1)],
-                "side"
+                "side",
+                this.getHighlight('side')
             )
             this.elem.appendChild(this.sideFace);
         }
     }
 
-    private renderFace(points: Point[], cssClass: string): SVGElement {
+    private renderFace(points: Point[], cssClass: string, highlight: string): SVGElement {
         let face = document.createElementNS(SVG_NS, "polygon")
 
         face.classList.add("fbeg-face")
@@ -77,8 +93,8 @@ class Cell3D {
             pointsStr += `${p.x},${p.y} `
         }
         face.setAttribute("points", pointsStr)
-        if(this.highlight != null) {
-            face.style.fill = this.highlight
+        if (highlight != null) {
+            face.style.fill = highlight
         }
         return face
     }
@@ -87,22 +103,22 @@ class Cell3D {
         this.renderCellContainer()
 
         let text = document.createElementNS(SVG_NS, "text")
-        
+
         let p: Point
-        switch(face) {
+        switch (face) {
             case "top":
                 this.topFace = text
-                p = this.tensor.getPoint(this.x + 0.5, this.y+0.5, this.z)
+                p = this.tensor.getPoint(this.x + 0.5, this.y + 0.5, this.z)
                 p.y -= 9
                 break;
             case "side":
                 this.sideFace = text
-                p = this.tensor.getPoint(this.x + 1, this.y+0.5, this.z+0.5)
+                p = this.tensor.getPoint(this.x + 1, this.y + 0.5, this.z + 0.5)
                 p.y -= 9
                 break;
             default:
                 this.frontFace = text
-                p = this.tensor.getPoint(this.x + 0.5, this.y+0.5, this.z)
+                p = this.tensor.getPoint(this.x + 0.5, this.y + 0.5, this.z)
                 p.x -= CELL_SIZE
                 break;
         }
@@ -130,7 +146,7 @@ class Tensor3D implements Tensor {
     x: number
     y: number
     z: number
-    highlight: { [position: string]: string } = {}
+    highlight: { [position: string]: Highlight } = {}
     maxX = 12
     maxY = 12
     maxZ = 12
@@ -142,7 +158,7 @@ class Tensor3D implements Tensor {
         this.z = z
         for (let h of highlight) {
             let p = h.position.join('_')
-            this.highlight[p] = h.color
+            this.highlight[p] = h
         }
     }
 

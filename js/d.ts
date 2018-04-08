@@ -5,7 +5,9 @@ declare interface Window {
 
 interface Highlight {
     position: number[],
-    color: string
+    top?: string,
+    front: string,
+    side?: string,
   }
   
   interface Point {

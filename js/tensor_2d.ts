@@ -7,9 +7,9 @@ class Cell2D {
     x: number
     y: number
     tensor: Tensor2D
-    highlight: string
+    highlight: Highlight
 
-    constructor(x: number, y: number, highlight: string, tensor: Tensor2D, parent: SVGGElement) {
+    constructor(x: number, y: number, highlight: Highlight, tensor: Tensor2D, parent: SVGGElement) {
         this.parent = parent
         this.x = x
         this.y = y
@@ -27,8 +27,8 @@ class Cell2D {
             pointsStr += `${p.x},${p.y} `
         }
         face.setAttribute("points", pointsStr)
-        if(this.highlight != null) {
-            face.style.fill = this.highlight
+        if(this.highlight != null && this.highlight.front != null) {
+            face.style.fill = this.highlight.front
         }
         return face
     }
@@ -75,7 +75,7 @@ class Tensor2D implements Tensor {
     elem: SVGGElement
     x: number
     y: number
-    highlight: { [position: string]: string } = {}
+    highlight: { [position: string]: Highlight } = {}
 
     constructor(x: number, y: number, highlight: Highlight[], parent: HTMLElement) {
         this.parent = parent
@@ -83,7 +83,7 @@ class Tensor2D implements Tensor {
         this.y = y
         for (let h of highlight) {
             let p = `${h.position[0]}_${h.position[1]}`
-            this.highlight[p] = h.color
+            this.highlight[p] = h
         }
 
     }

@@ -71,13 +71,13 @@ function test() {
   let highlight: Highlight[] = []
   for(let i = 1; i < 10; i += 2) {
     for(let j = 1; j < 10; j += 2) {
-      highlight.push({position: [i, j, 0], color: 'red'})
+      highlight.push({position: [i, j, 0], front: 'red'})
     }
   }
   for(let i = 0; i < 3; ++i) {
     for(let j = 0; j < 3; ++j) {
       if(i == 1 && j == 1) continue;
-      highlight.push({position: [i, j, 0], color: 'orange'})
+      highlight.push({position: [i, j, 0], front: 'orange'})
     }
   }
   renderTensor("testing-div", [[20], [4, 4], [20, 20, 28]], highlight)
