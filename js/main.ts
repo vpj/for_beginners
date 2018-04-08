@@ -56,9 +56,9 @@ function renderTensor(id: string, dimensions: any[], highlight: Highlight[]) {
   for(let d of dimensionsBreakdown) {
     let tensor: Tensor
     if(d.length == 1) {
-      tensor = new Tensor1D(d[0], container);
+      tensor = new Tensor1D(d[0], highlight, container);
     } else if(d.length == 2) {
-      tensor = new Tensor2D(d[0], d[1], container);
+      tensor = new Tensor2D(d[0], d[1], highlight, container);
     } else {
       tensor = new Tensor3D(d[0], d[1], d[2], highlight, container);      
     }
@@ -80,7 +80,7 @@ function test() {
       highlight.push({position: [i, j, 0], color: 'orange'})
     }
   }
-  renderTensor("testing-div", [[4, 4], [20, 20, 28]], highlight)
+  renderTensor("testing-div", [[20], [4, 4], [20, 20, 28]], highlight)
 }
 
 export { renderTensor, test }

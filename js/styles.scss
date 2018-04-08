@@ -17,74 +17,45 @@ $colorSide: rgba(30, 30, 30, 1);
     border: none;
     outline: none;
   }
-  .fbeg-tensor-container {
-    position: relative;
-    overflow: hidden;
-    .fbeg-2d-content {
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      left: $cellSize;
-      top: $cellSize;
-      .fbeg-2d {
-        width: 240px;
-        height: 240px;
-        position: absolute;
-        .fbeg-cell {
-          position: relative;
-          .fbeg-face {
-            box-sizing: border-box;
-            position: absolute;
-            width: $cellSize;
-            height: $cellSize;
-            background-color: $colorFront;
-            opacity: 1;
-            border-left: solid 1px $borderColor;
-            border-top: solid 1px $borderColor;
-            z-index: 2; //border: solid 1px $borderColor;
-          }
-          .fbeg-face-right {
-            border-right: solid 1px $borderColor;
-          }
-          .fbeg-face-bottom {
-            border-bottom: solid 1px $borderColor;
-          }
-          .fbeg-label.fbeg-face {
-            background-color: transparent; //display: none;
-            border: none;
-            color: #ccc; //font-weight: bold;
-            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-            font-size: 8px;
-            text-align: center;
-            line-height: $cellSize;
-          }
-        }
+  .fbeg-2d-content {
+    margin-right: 20px;
+    .fbeg-2d {
+      .fbeg-face {
+        fill: $colorFront;
+        stroke: $borderColor;
+      }
+      .fbeg-label {
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        font-size: 10px;
+        text-anchor: middle;
+        line-height: $cellSize;
+        fill: #ccc;
       }
     }
-    .fbeg-3d-content {
-      overflow: hidden;
-      .fbeg-3d {
-        .fbeg-cell {
-          .fbeg-face {
-            fill: $colorTop;
-            stroke: $borderColor;
-          }
-          .fbeg-label {
-            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-            font-size: 10px;
-            text-anchor: middle;
-            line-height: $cellSize;
-            fill: #ccc;
-          }
-          .fbeg-face-top {
-            fill: $colorTop;
-          }
-          .fbeg-face-front {
-            fill: $colorFront;
-          }
-          .fbeg-face-side {
-            fill: $colorSide;
-          }
+  }
+  .fbeg-3d-content {
+    margin-right: 20px;
+    .fbeg-3d {
+      .fbeg-cell {
+        .fbeg-face {
+          fill: $colorTop;
+          stroke: $borderColor;
+        }
+        .fbeg-label {
+          font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+          font-size: 10px;
+          text-anchor: middle;
+          line-height: $cellSize;
+          fill: #ccc;
+        }
+        .fbeg-face-top {
+          fill: $colorTop;
+        }
+        .fbeg-face-front {
+          fill: $colorFront;
+        }
+        .fbeg-face-side {
+          fill: $colorSide;
         }
       }
     }

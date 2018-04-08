@@ -8,4 +8,8 @@ interface Highlight {
     color: string
   }
   
-  
+  interface Point {
+    x: number
+    y: number
+}
+

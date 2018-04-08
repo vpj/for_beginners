@@ -1,65 +1,91 @@
-import { CELL_SIZE, BLOCK_SIZE, ELLIPSES } from "./consts"
+import { CELL_SIZE, BLOCK_SIZE, ELLIPSES, SVG_NS } from "./consts"
 import { Tensor } from "./tensor";
 
 class Cell2D {
-    parent: HTMLElement
-    elem: HTMLElement
-    face: HTMLElement
+    parent: SVGGElement
+    elem: SVGElement
     x: number
     y: number
     tensor: Tensor2D
+    highlight: string
 
-    constructor(x: number, y: number, tensor: Tensor2D, parent: HTMLElement) {
+    constructor(x: number, y: number, highlight: string, tensor: Tensor2D, parent: SVGGElement) {
         this.parent = parent
         this.x = x
         this.y = y
+        this.highlight = highlight
         this.tensor = tensor
     }
 
-    render(isBorderRight: boolean, isBorderBottom: boolean) {
-        this.renderCellContainer()
+    private renderFace(points: Point[]): SVGElement {
+        let face = document.createElementNS(SVG_NS, "polygon")
 
-        this.face = document.createElement("div")
-        this.face.classList.add(`fbeg-face`)
-        if (isBorderRight) this.face.classList.add("fbeg-face-right")
-        if (isBorderBottom) this.face.classList.add("fbeg-face-bottom")
-        this.elem.appendChild(this.face)
+        face.classList.add("fbeg-face")
+
+        let pointsStr = ""
+        for (let p of points) {
+            pointsStr += `${p.x},${p.y} `
+        }
+        face.setAttribute("points", pointsStr)
+        if(this.highlight != null) {
+            face.style.fill = this.highlight
+        }
+        return face
     }
 
-    renderLabel(label: string) {
-        this.renderCellContainer()
-
-        this.face = document.createElement("div")
-        this.face.classList.add(`fbeg-label`)
-        this.face.classList.add(`fbeg-face`)
-        this.face.textContent = label
-        this.elem.appendChild(this.face)
-    }
-
-    private renderCellContainer() {
-        this.elem = document.createElement("div")
-        this.elem.classList.add("fbeg-cell")
+    render() {
+        this.elem = this.renderFace(
+            [this.tensor.getPoint(this.x, this.y),
+                this.tensor.getPoint(this.x, this.y + 1),
+                this.tensor.getPoint(this.x + 1, this.y + 1),
+                this.tensor.getPoint(this.x + 1, this.y)]
+        )
         this.parent.appendChild(this.elem)
+    }
 
-        let x = this.x
-        let y = this.y
-        this.elem.style.top = `${y * CELL_SIZE}px`
-        this.elem.style.left = `${x * CELL_SIZE}px`
+    renderLabel(face: string, label: string) {
+        let text = document.createElementNS(SVG_NS, "text")
+        
+        let p: Point
+        switch(face) {
+            case "top":
+                this.elem = text
+                p = this.tensor.getPoint(this.x + 0.5, this.y+0.5)
+                p.y -= 9
+                break;
+            default:
+                this.elem = text
+                p = this.tensor.getPoint(this.x + 0.5, this.y+0.5)
+                p.x -= CELL_SIZE
+                p.y += 2
+                break;
+        }
+        text.setAttribute('x', `${p.x}px`)
+        text.setAttribute('y', `${p.y}px`)
+
+        text.classList.add(`fbeg-label`)
+        text.textContent = label
+        this.parent.appendChild(text)
     }
 }
 
 class Tensor2D implements Tensor {
     parent: HTMLElement
-    container: HTMLElement
-    content: HTMLElement
-    elem: HTMLElement
+    content: SVGElement
+    elem: SVGGElement
     x: number
     y: number
+    highlight: { [position: string]: string } = {}
 
-    constructor(x: number, y: number, parent: HTMLElement) {
+    constructor(x: number, y: number, highlight: Highlight[], parent: HTMLElement) {
         this.parent = parent
         this.x = x
         this.y = y
+        for (let h of highlight) {
+            let p = `${h.position[0]}_${h.position[1]}`
+            this.highlight[p] = h.color
+        }
+
     }
 
     get X(): number {
@@ -69,6 +95,11 @@ class Tensor2D implements Tensor {
         return Math.min(this.y, 7)
     }
 
+    getPoint(x: number, y: number): Point {
+        return { x: x * CELL_SIZE, y: y * CELL_SIZE }
+    }
+
+
     render() {
         this.renderFrame();
         this.renderCells();
@@ -77,44 +108,33 @@ class Tensor2D implements Tensor {
     }
 
     protected renderFrame() {
-        this.container = document.createElement("div")
-        this.container.classList.add("fbeg-tensor-container")
-        this.parent.appendChild(this.container)
-
-        this.content = document.createElement("div")
+        this.content = document.createElementNS(SVG_NS, "svg")
         this.content.classList.add("fbeg-2d-content")
-        this.container.appendChild(this.content)
+        this.parent.appendChild(this.content)
 
-        this.elem = document.createElement("div")
+        this.elem = document.createElementNS(SVG_NS, "g")
         this.elem.classList.add("fbeg-2d")
         this.content.appendChild(this.elem)
 
-        let w = (1.2 + this.X) * CELL_SIZE
-        let h = (1.2 + this.Y) * CELL_SIZE
-
-        this.container.style.width = `${w}px`
-        this.container.style.height = `${h}px`
+        this.content.style.width = `${this.getPoint(this.X, 0).x - this.getPoint(-1, 0).x}px`
+        this.content.style.height = `${this.getPoint(0, this.Y).y - this.getPoint(0, -1).y}px`
+        this.elem.style.transform = `translate(${-this.getPoint(-1, 0).x}px, ${-this.getPoint(0, -1).y}px)`
     }
 
     protected renderCells() {
         for (let x = 0; x < this.X; ++x) {
             for (let y = 0; y < this.Y; ++y) {
-                let isBorderRight = false
-                let isBorderBottom = false
                 if (this.x > this.X) {
-                    if (x == this.X - 3) isBorderRight = true
                     if (x == this.X - 2) continue
                 }
                 if (this.y > this.Y) {
-                    if (y == this.Y - 3) isBorderBottom = true
                     if (y == this.Y - 2) continue
                 }
 
-                if (x == this.X - 1) isBorderRight = true
-                if (y == this.Y - 1) isBorderBottom = true
+                let p = `${x}_${y}`
 
-                let cell = new Cell2D(x, y, this, this.elem)
-                cell.render(isBorderRight, isBorderBottom)
+                let cell = new Cell2D(x, y, this.highlight[p], this, this.elem)
+                cell.render()
             }
         }
     }
@@ -127,8 +147,8 @@ class Tensor2D implements Tensor {
                 if (x == this.X - 1) label = `${this.x - 1}`
             }
 
-            let cell = new Cell2D(x, -1, this, this.elem)
-            cell.renderLabel(label)
+            let cell = new Cell2D(x, 0, null, this, this.elem)
+            cell.renderLabel("top", label)
         }
     }
 
@@ -140,8 +160,8 @@ class Tensor2D implements Tensor {
                 if (y == this.Y - 1) label = `${this.y - 1}`
             }
 
-            let cell = new Cell2D(-1, y, this, this.elem)
-            cell.renderLabel(label)
+            let cell = new Cell2D(0, y, null, this, this.elem)
+            cell.renderLabel("front", label)
         }
     }
 }

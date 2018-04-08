@@ -1,12 +1,6 @@
-import { CELL_SIZE, BLOCK_SIZE, ELLIPSES } from "./consts"
+import { CELL_SIZE, BLOCK_SIZE, ELLIPSES, SVG_NS } from "./consts"
 import { Tensor } from "./tensor";
 
-const SVG_NS = "http://www.w3.org/2000/svg"
-
-interface Point {
-    x: number
-    y: number
-}
 
 interface CellHasFaces {
     top: boolean,
@@ -131,7 +125,6 @@ class Cell3D {
 
 class Tensor3D implements Tensor {
     parent: HTMLElement
-    container: HTMLElement
     content: SVGElement
     elem: SVGGElement
     x: number
@@ -181,13 +174,9 @@ class Tensor3D implements Tensor {
     }
 
     protected renderFrame() {
-        this.container = document.createElement("div")
-        this.container.classList.add("fbeg-tensor-container")
-        this.parent.appendChild(this.container)
-
         this.content = document.createElementNS(SVG_NS, "svg")
         this.content.classList.add("fbeg-3d-content")
-        this.container.appendChild(this.content)
+        this.parent.appendChild(this.content)
 
         this.elem = document.createElementNS(SVG_NS, "g")
         this.elem.classList.add("fbeg-3d")
@@ -197,8 +186,6 @@ class Tensor3D implements Tensor {
         this.content.style.height = `${this.getPoint(this.X, this.Y, 0).y - this.getPoint(0, 0, this.Z).y}px`
         console.log(`translate(${this.getPoint(-1, 0, 0).x}, ${-this.getPoint(0, 0, this.Z).y})`)
         this.elem.style.transform = `translate(${-this.getPoint(-1, 0, 0).x}px, ${-this.getPoint(0, 0, this.Z).y}px)`
-        //this.elem.style.width = `${200}px`
-        //this.elem.style.height = `${200}px`
     }
 
     protected renderCells() {
