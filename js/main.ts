@@ -68,20 +68,19 @@ function renderTensor(id: string, dimensions: any[], highlight: Highlight[]) {
 }
 
 function test() {
-  renderTensor("testing-div", [[10, 10, 28]], [
-    {position: [1, 1, 0], color: 'red'},
-    {position: [3, 1, 0], color: 'red'},
-    {position: [1, 3, 0], color: 'red'},
-    {position: [3, 3, 0], color: 'red'},
-    {position: [0, 0, 0], color: 'pink'},
-    {position: [0, 1, 0], color: 'pink'},
-    {position: [0, 2, 0], color: 'pink'},
-    {position: [1, 0, 0], color: 'pink'},
-    {position: [1, 2, 0], color: 'pink'},
-    {position: [2, 0, 0], color: 'pink'},
-    {position: [2, 1, 0], color: 'pink'},
-    {position: [2, 2, 0], color: 'pink'},
-  ])
+  let highlight: Highlight[] = []
+  for(let i = 1; i < 10; i += 2) {
+    for(let j = 1; j < 10; j += 2) {
+      highlight.push({position: [i, j, 0], color: 'red'})
+    }
+  }
+  for(let i = 0; i < 3; ++i) {
+    for(let j = 0; j < 3; ++j) {
+      if(i == 1 && j == 1) continue;
+      highlight.push({position: [i, j, 0], color: 'orange'})
+    }
+  }
+  renderTensor("testing-div", [[4, 4], [20, 20, 28]], highlight)
 }
 
 export { renderTensor, test }

@@ -1,8 +1,8 @@
 $cellSize: 15px;
 $borderColor: #666;
-$colorFront: rgba(50, 50, 50, 0.7);
-$colorTop: rgba(70, 70, 70, 0.7);
-$colorSide: rgba(30, 30, 30, 0.7);
+$colorFront: rgba(50, 50, 50, 1);
+$colorTop: rgba(70, 70, 70, 1);
+$colorSide: rgba(30, 30, 30, 1);
 /** PLANE **/
 
 .fbeg-container {
@@ -19,8 +19,6 @@ $colorSide: rgba(30, 30, 30, 0.7);
   }
   .fbeg-tensor-container {
     position: relative;
-    width: 200px;
-    height: 200px;
     overflow: hidden;
     .fbeg-2d-content {
       position: absolute;
@@ -64,84 +62,28 @@ $colorSide: rgba(30, 30, 30, 0.7);
       }
     }
     .fbeg-3d-content {
-      position: absolute;
-      width: 200px;
-      height: 200px;
-      perspective-origin: 50% 300px;
-      perspective: 1200px;
       overflow: hidden;
       .fbeg-3d {
-        left: -20px;
-        transform: rotateX(60deg) rotateY(0deg) rotateZ(45deg);
-        width: 240px;
-        height: 240px;
-        transform-style: preserve-3d;
-        transform-origin: 50% 50%;
-        position: absolute;
-        /** CUBE **/
         .fbeg-cell {
-          position: relative;
-          transform-style: preserve-3d;
           .fbeg-face {
-            box-sizing: border-box;
-            position: absolute;
-            width: $cellSize;
-            height: $cellSize;
-            background-color: $colorFront;
-            transform-origin: 50% 50%;
-            opacity: 1;
-            z-index: 2; //border: solid 1px $borderColor;
+            fill: $colorTop;
+            stroke: $borderColor;
           }
-          .fbeg-label.fbeg-face {
-            background-color: transparent; //display: none;
-            border: none;
-            color: #ccc; //font-weight: bold;
+          .fbeg-label {
             font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-            font-size: 8px;
-            text-align: center;
+            font-size: 10px;
+            text-anchor: middle;
             line-height: $cellSize;
+            fill: #ccc;
           }
-          .fbeg-face-1 {
-            //top
-            //background-color: #ffaa11;
-            background-color: $colorTop;
-            border-left: solid 1px $borderColor;
-            border-bottom: solid 1px $borderColor;
-            transform: translate3d(0, 0, $cellSize);
+          .fbeg-face-top {
+            fill: $colorTop;
           }
-          .fbeg-face-2 {
-            //back
-            //background-color: #ffaa33;
-            border-left: solid 1px $borderColor;
-            border-bottom: solid 1px $borderColor;
-            transform-origin: 0% 50%;
-            transform: rotateX(90deg) translate3d(0, $cellSize / 2, $cellSize / 2);
+          .fbeg-face-front {
+            fill: $colorFront;
           }
-          .fbeg-face-3 {
-            //front
-            border-left: solid 1px $borderColor;
-            border-bottom: solid 1px $borderColor; //background-color: #ffbb22;
-            transform-origin: 50% 50%;
-            transform: rotateX(-90deg) translate3d(0, -$cellSize / 2, $cellSize / 2);
-          }
-          .fbeg-face-4 {
-            //side behind
-            border-right: solid 1px $borderColor;
-            border-top: solid 1px $borderColor; //background-color: #ff9922;
-            transform-origin: 50% 0%;
-            transform: rotateY(90deg) translate3d(-$cellSize / 2, 0px, -$cellSize / 2);
-          }
-          .fbeg-face-5 {
-            //side
-            background-color: $colorSide;
-            border-left: solid 1px $borderColor;
-            border-top: solid 1px $borderColor; //background-color: #eeaa22;
-            transform-origin: 50% 50%;
-            transform: rotateX(-90deg) rotateY(90deg) translate3d(0px, -$cellSize / 2, $cellSize / 2);
-          }
-          .fbeg-face-6 {
-            border-right: solid 1px $borderColor;
-            border-top: solid 1px $borderColor;
+          .fbeg-face-side {
+            fill: $colorSide;
           }
         }
       }

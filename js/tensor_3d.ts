@@ -1,17 +1,32 @@
 import { CELL_SIZE, BLOCK_SIZE, ELLIPSES } from "./consts"
 import { Tensor } from "./tensor";
 
+const SVG_NS = "http://www.w3.org/2000/svg"
+
+interface Point {
+    x: number
+    y: number
+}
+
+interface CellHasFaces {
+    top: boolean,
+    front: boolean,
+    side: boolean
+}
+
 class Cell3D {
-    parent: HTMLElement
-    elem: HTMLElement
-    faces: HTMLElement[]
+    parent: SVGGElement
+    elem: SVGGElement
+    topFace: SVGElement
+    frontFace: SVGElement
+    sideFace: SVGElement
     x: number
     y: number
     z: number
     highlight: string
     tensor: Tensor3D
 
-    constructor(x: number, y: number, z: number, highlight: string, tensor: Tensor3D, parent: HTMLElement) {
+    constructor(x: number, y: number, z: number, highlight: string, tensor: Tensor3D, parent: SVGGElement) {
         this.parent = parent
         this.x = x
         this.y = y
@@ -20,71 +35,131 @@ class Cell3D {
         this.tensor = tensor
     }
 
-    render(hasFaces: boolean[]) {
+    render(hasFaces: CellHasFaces) {
         this.renderCellContainer()
 
-        this.faces = new Array<HTMLElement>(6)
-        for (let i = 0; i < 6; ++i) {
-            if (hasFaces && hasFaces[i] == false)
-                continue
-            this.faces[i] = document.createElement("div")
-            this.faces[i].classList.add(`fbeg-face`)
-            this.faces[i].classList.add(`fbeg-face-${i + 1}`)
-            if(this.highlight != null) {
-                this.faces[i].style.backgroundColor = this.highlight
-            }
-            this.elem.appendChild(this.faces[i])
+        if (hasFaces.top) {
+            this.topFace = this.renderFace(
+                [this.tensor.getPoint(this.x, this.y, this.z),
+                this.tensor.getPoint(this.x, this.y, this.z + 1),
+                this.tensor.getPoint(this.x + 1, this.y, this.z + 1),
+                this.tensor.getPoint(this.x + 1, this.y, this.z)],
+                "top"
+            )
+            this.elem.appendChild(this.topFace);
+        }
+
+        if(hasFaces.front) {
+            this.frontFace = this.renderFace(
+                [this.tensor.getPoint(this.x, this.y, this.z),
+                this.tensor.getPoint(this.x, this.y + 1, this.z),
+                this.tensor.getPoint(this.x + 1, this.y + 1, this.z),
+                this.tensor.getPoint(this.x + 1, this.y, this.z)],
+                "front"
+            )
+            this.elem.appendChild(this.frontFace);
+        }
+
+        if(hasFaces.side) {
+            this.sideFace = this.renderFace(
+                [this.tensor.getPoint(this.x + 1, this.y, this.z),
+                this.tensor.getPoint(this.x + 1, this.y + 1, this.z),
+                this.tensor.getPoint(this.x + 1, this.y + 1, this.z + 1),
+                this.tensor.getPoint(this.x + 1, this.y, this.z + 1)],
+                "side"
+            )
+            this.elem.appendChild(this.sideFace);
         }
     }
 
-    renderLabel(face: number, label: string) {
+    private renderFace(points: Point[], cssClass: string): SVGElement {
+        let face = document.createElementNS(SVG_NS, "polygon")
+
+        face.classList.add("fbeg-face")
+        face.classList.add(`fbeg-face-${cssClass}`)
+
+        let pointsStr = ""
+        for (let p of points) {
+            pointsStr += `${p.x},${p.y} `
+        }
+        face.setAttribute("points", pointsStr)
+        if(this.highlight != null) {
+            face.style.fill = this.highlight
+        }
+        return face
+    }
+
+    renderLabel(face: string, label: string) {
         this.renderCellContainer()
 
-        this.faces = new Array<HTMLElement>(6)
-        this.faces[face] = document.createElement("div")
-        this.faces[face].classList.add(`fbeg-label`)
-        this.faces[face].classList.add(`fbeg-face`)
-        this.faces[face].classList.add(`fbeg-face-${face + 1}`)
-        this.faces[face].textContent = label
-        this.elem.appendChild(this.faces[face])
+        let text = document.createElementNS(SVG_NS, "text")
+        
+        let p: Point
+        switch(face) {
+            case "top":
+                this.topFace = text
+                p = this.tensor.getPoint(this.x + 0.5, this.y+0.5, this.z)
+                p.y -= 9
+                break;
+            case "side":
+                this.sideFace = text
+                p = this.tensor.getPoint(this.x + 1, this.y+0.5, this.z+0.5)
+                p.y -= 9
+                break;
+            default:
+                this.frontFace = text
+                p = this.tensor.getPoint(this.x + 0.5, this.y+0.5, this.z)
+                p.x -= CELL_SIZE
+                break;
+        }
+        text.setAttribute('x', `${p.x}px`)
+        text.setAttribute('y', `${p.y}px`)
+
+        text.classList.add(`fbeg-label`)
+        //text.classList.add(`fbeg-face`)
+        text.classList.add(`fbeg-face-label-${face}`)
+        text.textContent = label
+        this.elem.appendChild(text)
     }
 
     private renderCellContainer() {
-        this.elem = document.createElement("div")
+        this.elem = document.createElementNS(SVG_NS, "g")
         this.elem.classList.add("fbeg-cell")
         this.parent.appendChild(this.elem)
-
-        let z = BLOCK_SIZE - this.z
-        let x = BLOCK_SIZE - this.tensor.X + this.x + 1
-        let y = this.tensor.Y - this.y
-        this.elem.style.top = `${z * CELL_SIZE}px`
-        this.elem.style.left = `${x * CELL_SIZE}px`
-        this.elem.style.transform = `translate3d(0px, 0px, ${y * CELL_SIZE}px)`
     }
 }
 
 class Tensor3D implements Tensor {
     parent: HTMLElement
     container: HTMLElement
-    content: HTMLElement
-    elem: HTMLElement
+    content: SVGElement
+    elem: SVGGElement
     x: number
     y: number
     z: number
-    highlight: {[position: string]: string} = {}
-    maxX = 7
-    maxY = 7
-    maxZ = 7
+    highlight: { [position: string]: string } = {}
+    maxX = 12
+    maxY = 12
+    maxZ = 12
 
     constructor(x: number, y: number, z: number, highlight: Highlight[], parent: HTMLElement) {
         this.parent = parent
         this.x = x
         this.y = y
         this.z = z
-        for(let h of highlight) {
+        for (let h of highlight) {
             let p = h.position.join('_')
             this.highlight[p] = h.color
         }
+    }
+
+    getPoint(x: number, y: number, z: number): Point {
+        let angleX = Math.PI / 12
+        let angleZ = Math.PI / 9
+        let dx = x * Math.cos(angleX) + z * Math.cos(angleZ);
+        let dy = x * Math.sin(angleX) - z * Math.sin(angleZ) + y;
+
+        return { x: dx * CELL_SIZE, y: dy * CELL_SIZE }
     }
 
     get X(): number {
@@ -110,26 +185,18 @@ class Tensor3D implements Tensor {
         this.container.classList.add("fbeg-tensor-container")
         this.parent.appendChild(this.container)
 
-        this.content = document.createElement("div")
+        this.content = document.createElementNS(SVG_NS, "svg")
         this.content.classList.add("fbeg-3d-content")
         this.container.appendChild(this.content)
 
-        this.elem = document.createElement("div")
+        this.elem = document.createElementNS(SVG_NS, "g")
         this.elem.classList.add("fbeg-3d")
         this.content.appendChild(this.elem)
 
-        let l = (1 + Math.cos(Math.PI / 5.5) * this.X) * CELL_SIZE
-        let L = (1 + Math.cos(Math.PI / 5.5) * this.maxX) * CELL_SIZE
-        let r = (0 + Math.cos(Math.PI / 6) * this.Z) * CELL_SIZE
-        let R = (0 + Math.cos(Math.PI / 6) * this.maxZ) * CELL_SIZE
-        let b = CELL_SIZE
-        let t = (1 + this.Y + (Math.sin(Math.PI / 6) + Math.sin(Math.PI / 48)) * (this.Z + this.X) / 2) * CELL_SIZE
-        let T = (1 + this.maxY + (Math.sin(Math.PI / 6) + Math.sin(Math.PI / 48)) * (this.maxZ + this.maxZ) / 2) * CELL_SIZE
-
-        this.container.style.width = `${l + r}px`
-        this.container.style.height = `${t + b}px`
-        this.content.style.left = `${l - L}px`
-        this.content.style.top = `${t - T}px`
+        this.content.style.width = `${this.getPoint(this.X, 0, this.Z).x - this.getPoint(-1, 0, 0).x}px`
+        this.content.style.height = `${this.getPoint(this.X, this.Y, 0).y - this.getPoint(0, 0, this.Z).y}px`
+        console.log(`translate(${this.getPoint(-1, 0, 0).x}, ${-this.getPoint(0, 0, this.Z).y})`)
+        this.elem.style.transform = `translate(${-this.getPoint(-1, 0, 0).x}px, ${-this.getPoint(0, 0, this.Z).y}px)`
         //this.elem.style.width = `${200}px`
         //this.elem.style.height = `${200}px`
     }
@@ -140,36 +207,25 @@ class Tensor3D implements Tensor {
         for (let x = 0; x < this.X; ++x) {
             for (let y = 0; y < this.Y; ++y) {
                 for (let z = 0; z < this.Z; ++z) {
-                    faces[0] = y == 0 //top
-                    faces[1] = z == this.Z - 1 //back
-                    faces[2] = z == 0 //front
-                    faces[3] = x == 0 //side behind
-                    faces[4] = x == this.X - 1 //side front
-                    faces[5] = y == this.Y - 1 // bottom
-
+                    let faces: CellHasFaces = {
+                        top: y == 0,
+                        front: z == 0,
+                        side: x == this.X - 1
+                    }
                     if (this.x > this.X) {
-                        if (x == this.X - 3) faces[4] = true
+                        if (x == this.X - 3) faces.side = true
                         if (x == this.X - 2) continue
-                        if (x == this.X - 1) faces[3] = true
                     }
                     if (this.y > this.Y) {
-                        if (y == this.Y - 3) faces[5] = true
                         if (y == this.Y - 2) continue
-                        if (y == this.Y - 1) faces[0] = true
+                        if (y == this.Y - 1) faces.top = true
                     }
                     if (this.z > this.Z) {
-                        if (z == this.Z - 3) faces[1] = true
                         if (z == this.Z - 2) continue
-                        if (z == this.Z - 1) faces[2] = true
+                        if (z == this.Z - 1) faces.front = true
                     }
 
-                    let has = false
-                    for (let i = 0; i < 6; ++i) {
-                        if (faces[i])
-                            has = true
-                    }
-
-                    if (!has) {
+                    if (!faces.top && !faces.front && !faces.side) {
                         continue
                     }
 
@@ -189,8 +245,8 @@ class Tensor3D implements Tensor {
                 if (x == this.X - 1) label = `${this.x - 1}`
             }
 
-            let cell = new Cell3D(x, -1, 0, null, this, this.elem)
-            cell.renderLabel(2, label)
+            let cell = new Cell3D(x, 0, 0, null, this, this.elem)
+            cell.renderLabel('top', label)
         }
     }
 
@@ -202,8 +258,8 @@ class Tensor3D implements Tensor {
                 if (y == this.Y - 1) label = `${this.y - 1}`
             }
 
-            let cell = new Cell3D(-1, y, 0, null, this, this.elem)
-            cell.renderLabel(2, label)
+            let cell = new Cell3D(0, y, 0, null, this, this.elem)
+            cell.renderLabel('front', label)
         }
     }
 
@@ -215,8 +271,8 @@ class Tensor3D implements Tensor {
                 if (z == this.Z - 1) label = `${this.z - 1}`
             }
 
-            let cell = new Cell3D(this.X - 1, -1, z, null, this, this.elem)
-            cell.renderLabel(4, label)
+            let cell = new Cell3D(this.X - 1, 0, z, null, this, this.elem)
+            cell.renderLabel('side', label)
         }
     }
 }
