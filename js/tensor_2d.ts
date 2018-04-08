@@ -4,15 +4,13 @@ import { Tensor } from "./tensor";
 class Cell2D {
     parent: SVGGElement
     elem: SVGElement
-    x: number
-    y: number
+    cell: number[]
     tensor: Tensor2D
     highlight: Highlight
 
-    constructor(x: number, y: number, highlight: Highlight, tensor: Tensor2D, parent: SVGGElement) {
+    constructor(cell: number[], highlight: Highlight, tensor: Tensor2D, parent: SVGGElement) {
         this.parent = parent
-        this.x = x
-        this.y = y
+        this.cell = cell
         this.highlight = highlight
         this.tensor = tensor
     }
@@ -34,28 +32,34 @@ class Cell2D {
     }
 
     render() {
+        let x = this.cell[0]
+        let y = this.cell[1]
+        let z = this.cell[2]
+
         this.elem = this.renderFace(
-            [this.tensor.getPoint(this.x, this.y),
-                this.tensor.getPoint(this.x, this.y + 1),
-                this.tensor.getPoint(this.x + 1, this.y + 1),
-                this.tensor.getPoint(this.x + 1, this.y)]
+            [this.tensor.getPoint(x, y),
+                this.tensor.getPoint(x, y + 1),
+                this.tensor.getPoint(x + 1, y + 1),
+                this.tensor.getPoint(x + 1, y)]
         )
         this.parent.appendChild(this.elem)
     }
 
     renderLabel(face: string, label: string) {
         let text = document.createElementNS(SVG_NS, "text")
+        let x = this.cell[0]
+        let y = this.cell[1]
         
         let p: Point
         switch(face) {
             case "top":
                 this.elem = text
-                p = this.tensor.getPoint(this.x + 0.5, this.y+0.5)
+                p = this.tensor.getPoint(x + 0.5, y+0.5)
                 p.y -= 9
                 break;
             default:
                 this.elem = text
-                p = this.tensor.getPoint(this.x + 0.5, this.y+0.5)
+                p = this.tensor.getPoint(x + 0.5, y+0.5)
                 p.x -= CELL_SIZE
                 p.y += 2
                 break;
@@ -69,30 +73,9 @@ class Cell2D {
     }
 }
 
-class Tensor2D implements Tensor {
-    parent: HTMLElement
-    content: SVGElement
-    elem: SVGGElement
-    x: number
-    y: number
-    highlight: { [position: string]: Highlight } = {}
-
-    constructor(x: number, y: number, highlight: Highlight[], parent: HTMLElement) {
-        this.parent = parent
-        this.x = x
-        this.y = y
-        for (let h of highlight) {
-            let p = `${h.position[0]}_${h.position[1]}`
-            this.highlight[p] = h
-        }
-
-    }
-
-    get X(): number {
-        return Math.min(this.x, 7)
-    }
-    get Y(): number {
-        return Math.min(this.y, 7)
+class Tensor2D extends Tensor {
+    constructor(size: number[], end: string[], highlight: Highlight[], parent: HTMLElement) {
+        super(size, end, highlight, parent)
     }
 
     getPoint(x: number, y: number): Point {
@@ -103,8 +86,8 @@ class Tensor2D implements Tensor {
     render() {
         this.renderFrame();
         this.renderCells();
-        this.renderXLabels();
-        this.renderYLabels()
+        this.renderLabels(0);
+        this.renderLabels(1);
     }
 
     protected renderFrame() {
@@ -116,52 +99,47 @@ class Tensor2D implements Tensor {
         this.elem.classList.add("fbeg-2d")
         this.content.appendChild(this.elem)
 
-        this.content.style.width = `${this.getPoint(this.X, 0).x - this.getPoint(-1, 0).x}px`
-        this.content.style.height = `${this.getPoint(0, this.Y).y - this.getPoint(0, -1).y}px`
+        let X = this.fullSize[0]
+        let Y = this.fullSize[1]
+
+        this.content.style.width = `${this.getPoint(X, 0).x - this.getPoint(-1, 0).x}px`
+        this.content.style.height = `${this.getPoint(0, Y).y - this.getPoint(0, -1).y}px`
         this.elem.style.transform = `translate(${-this.getPoint(-1, 0).x}px, ${-this.getPoint(0, -1).y}px)`
     }
 
     protected renderCells() {
-        for (let x = 0; x < this.X; ++x) {
-            for (let y = 0; y < this.Y; ++y) {
-                if (this.x > this.X) {
-                    if (x == this.X - 2) continue
+        let X = this.fullSize[0]
+        let Y = this.fullSize[1]
+
+        for (let x = 0; x < X; ++x) {
+            for (let y = 0; y < Y; ++y) {
+                if (this.end[0] != null) {
+                    if (x == X - 2) continue
                 }
-                if (this.y > this.Y) {
-                    if (y == this.Y - 2) continue
+                if (this.end[1] != null) {
+                    if (y == Y - 2) continue
                 }
 
                 let p = `${x}_${y}`
 
-                let cell = new Cell2D(x, y, this.highlight[p], this, this.elem)
+                let cell = new Cell2D([x, y], this.highlight[p], this, this.elem)
                 cell.render()
             }
         }
     }
 
-    protected renderXLabels() {
-        for (let x = 0; x < this.X; ++x) {
+    protected renderLabels(d: number) {
+        for (let x = 0; x < this.fullSize[d]; ++x) {
             let label = `${x}`
-            if (this.x > this.X) {
-                if (x == this.X - 2) label = ELLIPSES
-                if (x == this.X - 1) label = `${this.x - 1}`
+            if (this.end[d] != null) {
+                if (x == this.fullSize[d] - 2) label = ELLIPSES
+                if (x == this.fullSize[d] - 1) label = this.end[d]
             }
+            let c = [0, 0]
+            c[d] = x
 
-            let cell = new Cell2D(x, 0, null, this, this.elem)
+            let cell = new Cell2D(c, null, this, this.elem)
             cell.renderLabel("top", label)
-        }
-    }
-
-    protected renderYLabels() {
-        for (let y = 0; y < this.Y; ++y) {
-            let label = `${y}`
-            if (this.y > this.Y) {
-                if (y == this.Y - 2) label = ELLIPSES
-                if (y == this.Y - 1) label = `${this.y - 1}`
-            }
-
-            let cell = new Cell2D(0, y, null, this, this.elem)
-            cell.renderLabel("front", label)
         }
     }
 }

@@ -41,7 +41,7 @@ function breakdownDimensions(dimensions: any[]) {
   return result;
 }
 
-function renderTensor(id: string, dimensions: any[], highlight: Highlight[]) {
+function renderTensor2(id: string, dimensions: any[], highlight: Highlight[]) {
   let container = document.getElementById(id)
   if (container == null) {
     return
@@ -56,15 +56,50 @@ function renderTensor(id: string, dimensions: any[], highlight: Highlight[]) {
   for(let d of dimensionsBreakdown) {
     let tensor: Tensor
     if(d.length == 1) {
-      tensor = new Tensor1D(d[0], highlight, container);
+      tensor = new Tensor1D([d[0]], ['N'], highlight, container);
     } else if(d.length == 2) {
-      tensor = new Tensor2D(d[0], d[1], highlight, container);
+      tensor = new Tensor2D([d[0], d[1]], ['N', null], highlight, container);
     } else {
       tensor = new Tensor3D([d[0], d[1], d[2]], ['N', null, 'M'], highlight, container);      
     }
 
     tensor.render()
   }
+}
+
+function renderTensor(id: string, dimensions: number[], end: string[], highlight: Highlight[]) {
+  let container = document.getElementById(id)
+  if (container == null) {
+    return
+  }
+  container.classList.add("fbeg-container")
+
+    let tensor: Tensor
+    if(dimensions.length == 1) {
+      tensor = new Tensor1D(dimensions, end, highlight, container);
+    } else if(dimensions.length == 2) {
+      tensor = new Tensor2D(dimensions, end, highlight, container);
+    } else {
+      tensor = new Tensor3D(dimensions, end, highlight, container);      
+    }
+
+    tensor.render()
+}
+
+function test2() {
+  let highlight: Highlight[] = []
+  for(let i = 1; i < 10; i += 2) {
+    for(let j = 1; j < 10; j += 2) {
+      highlight.push({position: [i, j, 0], front: 'red'})
+    }
+  }
+  for(let i = 0; i < 3; ++i) {
+    for(let j = 0; j < 3; ++j) {
+      if(i == 1 && j == 1) continue;
+      highlight.push({position: [i, j, 0], front: 'orange'})
+    }
+  }
+  renderTensor2("testing-div", [[20], [4, 4], [6, 12, 3]], highlight)
 }
 
 function test() {
@@ -80,7 +115,7 @@ function test() {
       highlight.push({position: [i, j, 0], front: 'orange'})
     }
   }
-  renderTensor("testing-div", [[20], [4, 4], [6, 12, 3]], highlight)
+  renderTensor("testing-div", [6, 12, 3], ['W', 'H', 'Z'], highlight)
 }
 
 export { renderTensor, test }

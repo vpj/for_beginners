@@ -142,28 +142,9 @@ class Cell3D {
     }
 }
 
-class Tensor3D implements Tensor {
-    parent: HTMLElement
-    content: SVGElement
-    elem: SVGGElement
-    size: number[]
-    end: string[]
-    fullSize: number[]
-    highlight: { [position: string]: Highlight } = {}
-
+class Tensor3D extends Tensor {
     constructor(size: number[], end: string[], highlight: Highlight[], parent: HTMLElement) {
-        this.parent = parent
-        this.size = size
-        this.end = end
-        for (let h of highlight) {
-            let p = h.position.join('_')
-            this.highlight[p] = h
-        }
-
-        this.fullSize = []
-        for (let i = 0; i < 3; ++i) {
-            this.fullSize.push(size[i] + (end[i] == null ? 0 : 2))
-        }
+        super(size, end, highlight, parent)
     }
 
     getPoint(x: number, y: number, z: number): Point {
