@@ -15,3 +15,8 @@ interface Highlight {
     y: number
 }
 
+
+interface Options {
+    highlight?: Highlight[]
+    cellSize?: number
+}

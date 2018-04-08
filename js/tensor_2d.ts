@@ -1,4 +1,4 @@
-import { CELL_SIZE, BLOCK_SIZE, ELLIPSES, SVG_NS } from "./consts"
+import { ELLIPSES, SVG_NS } from "./consts"
 import { Tensor } from "./tensor";
 
 class Cell2D {
@@ -45,7 +45,7 @@ class Cell2D {
         this.parent.appendChild(this.elem)
     }
 
-    renderLabel(face: string, label: string) {
+    renderLabel(face: string, label: string, cellSize: number) {
         let text = document.createElementNS(SVG_NS, "text")
         let x = this.cell[0]
         let y = this.cell[1]
@@ -60,7 +60,7 @@ class Cell2D {
             default:
                 this.elem = text
                 p = this.tensor.getPoint(x + 0.5, y+0.5)
-                p.x -= CELL_SIZE
+                p.x -= cellSize
                 p.y += 2
                 break;
         }
@@ -74,12 +74,12 @@ class Cell2D {
 }
 
 class Tensor2D extends Tensor {
-    constructor(size: number[], end: string[], highlight: Highlight[], parent: HTMLElement) {
-        super(size, end, highlight, parent)
+    constructor(size: number[], end: string[], options: Options, parent: HTMLElement) {
+        super(size, end, options, parent)
     }
 
     getPoint(x: number, y: number): Point {
-        return { x: x * CELL_SIZE, y: y * CELL_SIZE }
+        return { x: x * this.cellSize, y: y * this.cellSize }
     }
 
 
@@ -139,7 +139,7 @@ class Tensor2D extends Tensor {
             c[d] = x
 
             let cell = new Cell2D(c, null, this, this.elem)
-            cell.renderLabel("top", label)
+            cell.renderLabel("top", label, this.cellSize)
         }
     }
 }

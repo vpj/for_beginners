@@ -1,4 +1,4 @@
-import { CELL_SIZE, BLOCK_SIZE, ELLIPSES, SVG_NS } from "./consts"
+import { ELLIPSES, SVG_NS } from "./consts"
 import { Tensor } from "./tensor";
 
 
@@ -98,7 +98,7 @@ class Cell3D {
         return face
     }
 
-    renderLabel(face: string, label: string) {
+    renderLabel(face: string, label: string, cellSize: number) {
         let x = this.cell[0]
         let y = this.cell[1]
         let z = this.cell[2]
@@ -106,27 +106,28 @@ class Cell3D {
         this.renderCellContainer()
 
         let text = document.createElementNS(SVG_NS, "text")
-
+        let fontSize = Math.round(cellSize * 0.6)
         let p: Point
         switch (face) {
             case "top":
                 this.topFace = text
                 p = this.tensor.getPoint(x + 0.5, y + 0.5, z)
-                p.y -= 9
+                p.y -= fontSize + 1
                 break;
             case "side":
                 this.sideFace = text
                 p = this.tensor.getPoint(x + 1, y + 0.5, z + 0.5)
-                p.y -= 9
+                p.y -= fontSize + 1
                 break;
             default:
                 this.frontFace = text
                 p = this.tensor.getPoint(x + 0.5, y + 0.5, z)
-                p.x -= CELL_SIZE
+                p.x -= cellSize
                 break;
         }
         text.setAttribute('x', `${p.x}px`)
         text.setAttribute('y', `${p.y}px`)
+        text.style.fontSize = `${fontSize}px`
 
         text.classList.add(`fbeg-label`)
         //text.classList.add(`fbeg-face`)
@@ -143,8 +144,8 @@ class Cell3D {
 }
 
 class Tensor3D extends Tensor {
-    constructor(size: number[], end: string[], highlight: Highlight[], parent: HTMLElement) {
-        super(size, end, highlight, parent)
+    constructor(size: number[], end: string[], options: Options, parent: HTMLElement) {
+        super(size, end, options, parent)
     }
 
     getPoint(x: number, y: number, z: number): Point {
@@ -153,7 +154,7 @@ class Tensor3D extends Tensor {
         let dx = x * Math.cos(angleX) + z * Math.cos(angleZ);
         let dy = x * Math.sin(angleX) - z * Math.sin(angleZ) + y;
 
-        return { x: dx * CELL_SIZE, y: dy * CELL_SIZE }
+        return { x: dx * this.cellSize, y: dy * this.cellSize }
     }
 
     render() {
@@ -258,7 +259,7 @@ class Tensor3D extends Tensor {
                 c[0] = this.fullSize[0] - 1
             }
             let cell = new Cell3D(c, null, this, this.elem)
-            cell.renderLabel(face, label)
+            cell.renderLabel(face, label, this.cellSize)
         }
     }
 }
