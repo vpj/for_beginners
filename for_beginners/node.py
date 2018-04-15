@@ -1,3 +1,5 @@
+from . import render
+
 class Node(object):
     def __init__(self, func, *args, **kwargs):
         #print(args)
@@ -47,12 +49,12 @@ class Node(object):
         else:
             return self.args[idx]
 
-    def renderFormula(self):
+    def render_formula(self):
         #TODO
         pass
 
-    def renderTensor(self):
-        pass
+    def render_tensor(self):
+        return render.tensor(self.value.shape)
 
     def render_formula(self, scope):
         return "UNIMPLEMENTED"

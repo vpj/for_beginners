@@ -19,7 +19,7 @@ class Model(object):
         #print(value.scope)
         if len(self._scope) == 0:
             render.latex(value.render(value.scope, False))
-            render.diagram_tensor(p.shape)
+            render.html(value.render_tensor())
 
         #print("%s = %s, shape %s: %s" % (name, str(p.name), p.shape, str(p)))
         self.__dict__[name] = value
