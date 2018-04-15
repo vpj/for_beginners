@@ -204,7 +204,7 @@ class Tensor3D extends Tensor {
             if (i == 0 && c == f - 3) {
                 faces.side = true
             } else if (i == 1 && c == f - 1) {
-                faces.side = true
+                faces.top = true
             } else if (i == 2 && c == f - 1) {
                 faces.front = true
             }

@@ -1,6 +1,7 @@
 from IPython.core.display import display,HTML,Markdown
 import random
 import string
+import json
 
 def diagram_tensor(shape):
     dom_id = ''.join(random.choices(string.ascii_lowercase, k=10))
@@ -10,6 +11,15 @@ def diagram_tensor(shape):
             without_none.append(str(s))
 
     js = 'main.renderTensor("%s", [%s]);' % (dom_id, ', '.join(without_none))
+    js = 'require(["main"], function(main) { ' + js + ' });'
+
+    display(HTML('<div id="%s"></div><script>%s</script>' % (dom_id, js)))
+
+def diagram_tensor_new(dimensions, end, options):
+    dimensions = json.dumps(dimensions)
+    end = json.dumps(end)
+    options = json.dumps(options)
+    js = 'main.renderTensor("%s", %s, %s, %s);' % (dom_id, dimensions, end, options)
     js = 'require(["main"], function(main) { ' + js + ' });'
 
     display(HTML('<div id="%s"></div><script>%s</script>' % (dom_id, js)))
