@@ -66,12 +66,33 @@ class Tensor3D implements Tensor {
     x: number
     y: number
     z: number
+    xLabel: string
+    yLabel: string
+    zLabel: string
 
     constructor(x: number, y: number, z: number, parent: HTMLElement) {
         this.parent = parent
-        this.x = x
-        this.y = y
-        this.z = z
+        if (typeof(x) == "string") {
+            this.x = 10
+            this.xLabel = x
+        } else {
+            this.x = x
+            this.xLabel = `${x - 1}`
+        }
+        if (typeof(y) == "string") {
+            this.y = 10
+            this.yLabel = y
+        } else {
+            this.y = y
+            this.yLabel = `${y - 1}`
+        }
+        if (typeof(z) == "string") {
+            this.z = 10
+            this.zLabel = z
+        } else {
+            this.z = z
+            this.zLabel = `${z - 1}`
+        }
     }
 
     get X(): number {
@@ -171,7 +192,7 @@ class Tensor3D implements Tensor {
             let label = `${x}`
             if (this.x > this.X) {
                 if (x == this.X - 2) label = ELLIPSES
-                if (x == this.X - 1) label = `${this.x - 1}`
+                if (x == this.X - 1) label = this.xLabel
             }
 
             let cell = new Cell3D(x, -1, 0, this, this.elem)
@@ -184,7 +205,7 @@ class Tensor3D implements Tensor {
             let label = `${y}`
             if (this.y > this.Y) {
                 if (y == this.Y - 2) label = ELLIPSES
-                if (y == this.Y - 1) label = `${this.y - 1}`
+                if (y == this.Y - 1) label = this.yLabel
             }
 
             let cell = new Cell3D(-1, y, 0, this, this.elem)
@@ -197,7 +218,7 @@ class Tensor3D implements Tensor {
             let label = `${z}`
             if (this.z > this.Z) {
                 if (z == this.Z - 2) label = ELLIPSES
-                if (z == this.Z - 1) label = `${this.z - 1}`
+                if (z == this.Z - 1) label = this.zLabel
             }
 
             let cell = new Cell3D(this.X - 1, -1, z, this, this.elem)

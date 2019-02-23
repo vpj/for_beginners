@@ -55,12 +55,25 @@ class Tensor2D implements Tensor {
     elem: HTMLElement
     x: number
     y: number
+    xLabel: string
+    yLabel: string
 
     constructor(x: number, y: number, parent: HTMLElement) {
         this.parent = parent
-        this.x = x
-        this.y = y
-    }
+        if (typeof(x) == "string") {
+            this.x = 10
+            this.xLabel = x
+        } else {
+            this.x = x
+            this.xLabel = `${x - 1}`
+        }
+        if (typeof(y) == "string") {
+            this.y = 10
+            this.yLabel = y
+        } else {
+            this.y = y
+            this.yLabel = `${y - 1}`
+        }    }
 
     get X(): number {
         return Math.min(this.x, 7)
@@ -124,7 +137,7 @@ class Tensor2D implements Tensor {
             let label = `${x}`
             if (this.x > this.X) {
                 if (x == this.X - 2) label = ELLIPSES
-                if (x == this.X - 1) label = `${this.x - 1}`
+                if (x == this.X - 1) label = this.xLabel
             }
 
             let cell = new Cell2D(x, -1, this, this.elem)
@@ -137,7 +150,7 @@ class Tensor2D implements Tensor {
             let label = `${y}`
             if (this.y > this.Y) {
                 if (y == this.Y - 2) label = ELLIPSES
-                if (y == this.Y - 1) label = `${this.y - 1}`
+                if (y == this.Y - 1) label = this.yLabel
             }
 
             let cell = new Cell2D(-1, y, this, this.elem)

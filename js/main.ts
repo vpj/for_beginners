@@ -8,7 +8,7 @@ function breakdownDimensions(dimensions: any[]) {
 
   let isSpecified = false;
   for (let v of dimensions) {
-    if (typeof (v) != "number") {
+    if (typeof (v) != "number" && typeof(v) != "string") {
       isSpecified = true;
     }
   }
@@ -68,7 +68,7 @@ function renderTensor(id: string, dimensions: any[]) {
 }
 
 function test() {
-  renderTensor("testing-div", [5, [3, 2], [10, 10, 28]])
+  renderTensor("testing-div", [5, "p", [3, "l"], [10, 10, "k"]])
 }
 
 export { renderTensor, test }

@@ -6,7 +6,7 @@
         {
             "label": "Sass Compile",
             "type": "shell",
-            "command": "node-sass -w styles.scss styles.css",
+            "command": "node-sass --watch --output . styles.scss",
             "group": "build",
             "problemMatcher": []
         },
